@@ -1,0 +1,56 @@
+[tool.poetry]
+name = "cuidar-plus-backend"
+version = "1.0.0"
+description = "Backend para sistema de cuidado de idosos"
+authors = ["Cuidar Plus Team <team@cuidarplus.com>"]
+readme = "README.md"
+python = "^3.12"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+flask = "^3.1.0"
+flask-cors = "^5.0.0"
+flask-smorest = "^0.44.0"
+pydantic = "^2.10.3"
+pydantic-settings = "^2.6.1"
+marshmallow = "^3.23.1"
+sqlalchemy = "^2.0.36"
+alembic = "^1.14.0"
+psycopg2-binary = "^2.9.10"
+redis = "^5.2.0"
+pyjwt = "^2.9.0"
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+python-dotenv = "^1.0.1"
+httpx = "^0.28.1"
+python-dateutil = "^2.9.0"
+gunicorn = "^21.2.0"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.8.4"
+mypy = "^1.13.0"
+pytest = "^8.3.4"
+pytest-cov = "^6.0.0"
+pytest-mock = "^3.14.0"
+faker = "^33.1.0"
+factory-boy = "^3.3.1"
+pre-commit = "^3.6.0"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C90"]
+ignore = []
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_any_unimported = false
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: cuidar-plus-backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/cuidar_plus
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./src:/app/src
+    command: flask run --host=0.0.0.0 --reload
+    networks:
+      - cuidar-plus-network
+
+  db:
+    image: postgres:16-alpine
+    container_name: cuidar-plus-db
+    environment:
+      POSTGRES_DB: cuidar_plus
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cuidar-plus-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: cuidar-plus-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - cuidar-plus-network
+
+  # pgAdmin (Opcional - para gerenciar o banco)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: cuidar-plus-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@cuidarplus.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    networks:
+      - cuidar-plus-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  cuidar-plus-network:
+    driver: bridge
