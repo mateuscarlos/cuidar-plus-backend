@@ -3,7 +3,9 @@ from dataclasses import dataclass
 from typing import Optional
 from uuid import UUID
 
+from src.domain.entities.insurer import InsurerStatus
 from src.domain.repositories.insurer_repository import InsurerRepository
+from src.domain.services.insurer_service import InsurerDomainService
 from src.shared.exceptions.application_exception import ApplicationException
 
 
@@ -32,7 +34,14 @@ class UpdateInsurerOutput:
 
 
 class UpdateInsurerUseCase:
-    """Use Case: Update an insurer."""
+    """
+    Use Case: Update an existing insurer.
+    
+    Business Rules:
+    - Validate all fields being updated
+    - Check if insurer can be deactivated (no active plans)
+    - Validate email format
+    """
     
     def __init__(self, insurer_repository: InsurerRepository) -> None:
         self._insurer_repository = insurer_repository
@@ -40,12 +49,24 @@ class UpdateInsurerUseCase:
     async def execute(self, input_dto: UpdateInsurerInput) -> UpdateInsurerOutput:
         """Execute the use case."""
         
+        # Get existing insurer
         insurer = await self._insurer_repository.get_by_id(input_dto.id)
         if not insurer:
             raise ApplicationException(
-                message=f"Insurer with ID {input_dto.id} not found",
+                message="Operadora não encontrada",
                 code="INSURER_NOT_FOUND",
             )
+        
+        # Check if trying to deactivate using Domain Service
+        if input_dto.status and input_dto.status != insurer.status.value:
+            new_status = InsurerStatus(input_dto.status)
+            if new_status == InsurerStatus.INACTIVE:
+                can_deactivate, reason = InsurerDomainService.can_be_deactivated(insurer)
+                if not can_deactivate:
+                    raise ApplicationException(
+                        message=reason,
+                        code="CANNOT_DEACTIVATE",
+                    )
         
         insurer.update(
             name=input_dto.name,

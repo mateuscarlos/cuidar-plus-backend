@@ -5,6 +5,7 @@ from uuid import UUID
 
 from src.domain.entities.insurer import Insurer, InsurerAddress, InsurerType
 from src.domain.repositories.insurer_repository import InsurerRepository
+from src.domain.services.insurer_service import InsurerDomainService
 from src.shared.exceptions.application_exception import ApplicationException
 
 
@@ -37,7 +38,16 @@ class CreateInsurerOutput:
 
 
 class CreateInsurerUseCase:
-    """Use Case: Create a new insurer."""
+    """
+    Use Case: Create a new insurer.
+    
+    Business Rules:
+    - Validate all required fields
+    - Validate CNPJ format and check digits
+    - Validate ANS registration number (6 digits)
+    - Check for duplicate CNPJ
+    - Check for duplicate ANS registration
+    """
     
     def __init__(self, insurer_repository: InsurerRepository) -> None:
         self._insurer_repository = insurer_repository
@@ -45,25 +55,47 @@ class CreateInsurerUseCase:
     async def execute(self, input_dto: CreateInsurerInput) -> CreateInsurerOutput:
         """Execute the use case."""
         
+        # Validate business rules using Domain Service
+        errors = InsurerDomainService.validate_for_creation(
+            name=input_dto.name,
+            cnpj=input_dto.cnpj,
+            registration_number=input_dto.registration_number,
+            email=input_dto.email,
+            phone=input_dto.phone,
+        )
+        
+        if errors:
+            raise ApplicationException(
+                message="; ".join(errors),
+                code="VALIDATION_ERROR",
+            )
+        
+        # Validate CNPJ with check digits
+        if not InsurerDomainService.validate_cnpj(input_dto.cnpj):
+            raise ApplicationException(
+                message="CNPJ inválido (dígitos verificadores incorretos)",
+                code="INVALID_CNPJ",
+            )
+        
         # Check if CNPJ already exists
         existing = await self._insurer_repository.get_by_cnpj(input_dto.cnpj)
         if existing:
             raise ApplicationException(
-                message=f"Insurer with CNPJ {input_dto.cnpj} already exists",
-                code="INSURER_ALREADY_EXISTS",
+                message="Já existe uma operadora cadastrada com este CNPJ",
+                code="DUPLICATE_CNPJ",
             )
         
         # Check if registration number already exists
-        existing = await self._insurer_repository.get_by_registration_number(
+        existing_by_ans = await self._insurer_repository.get_by_registration_number(
             input_dto.registration_number
         )
-        if existing:
+        if existing_by_ans:
             raise ApplicationException(
-                message=f"Insurer with registration number {input_dto.registration_number} already exists",
-                code="REGISTRATION_NUMBER_ALREADY_EXISTS",
+                message="Já existe uma operadora cadastrada com este número ANS",
+                code="DUPLICATE_ANS",
             )
         
-        # Create address
+        # Create address value object
         address = InsurerAddress(
             street=input_dto.address["street"],
             number=input_dto.address["number"],
