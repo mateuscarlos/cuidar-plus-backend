@@ -9,6 +9,7 @@ services:
     env_file:
       - .env
     environment:
+      # Usando os nomes dos serviços (db, redis) pois estão na mesma rede interna
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/cuidar_plus
       - REDIS_URL=redis://redis:6379/0
     depends_on:
@@ -16,9 +17,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-    volumes:
-      - ./src:/app/src
-    command: flask run --host=0.0.0.0 --reload
+    # OBS: Removemos o volume ./src pois binds Windows->Linux remoto não funcionam bem.
+    # O código será copiado durante o 'build'.
+    command: flask run --host=0.0.0.0
     networks:
       - cuidar-plus-network
 
@@ -32,7 +33,8 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # SALVANDO NO DISCO DE 500GB DO SERVIDOR
+      - /dados/cuidar-plus/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -47,7 +49,8 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
+      # SALVANDO NO DISCO DE 500GB DO SERVIDOR
+      - /dados/cuidar-plus/redis:/data
     command: redis-server --appendonly yes
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -57,7 +60,6 @@ services:
     networks:
       - cuidar-plus-network
 
-  # pgAdmin (Opcional - para gerenciar o banco)
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: cuidar-plus-pgadmin
@@ -70,10 +72,6 @@ services:
       - db
     networks:
       - cuidar-plus-network
-
-volumes:
-  postgres_data:
-  redis_data:
 
 networks:
   cuidar-plus-network:
