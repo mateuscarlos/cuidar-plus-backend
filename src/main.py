@@ -7,6 +7,9 @@ from src.presentation.api.v1.routes.auth_routes import auth_bp
 from src.presentation.api.v1.routes.user_routes import user_bp
 from src.presentation.api.v1.routes.patient_routes import patient_bp
 from src.presentation.api.v1.routes.inventory_routes import inventory_bp
+from src.presentation.api.v1.routes.inventory_item_routes import inventory_item_bp
+from src.presentation.api.v1.routes.insurer_routes import insurer_bp
+from src.presentation.api.v1.routes.provider_routes import provider_bp
 from src.presentation.api.v1.routes.reports_routes import reports_bp
 from src.presentation.api.middlewares.error_handler import register_error_handlers
 from src.shared.utils.logger import app_logger
@@ -37,6 +40,9 @@ def create_app() -> Flask:
     app.register_blueprint(user_bp)
     app.register_blueprint(patient_bp)
     app.register_blueprint(inventory_bp)
+    app.register_blueprint(inventory_item_bp)
+    app.register_blueprint(insurer_bp)
+    app.register_blueprint(provider_bp)
     app.register_blueprint(reports_bp)
     
     # Health check endpoint
