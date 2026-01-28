@@ -1,4 +1,6 @@
 """SQLAlchemy Patient Repository Implementation."""
+from __future__ import annotations
+
 from typing import Optional
 from uuid import UUID
 

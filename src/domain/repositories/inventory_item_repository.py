@@ -1,8 +1,9 @@
 """Inventory Item Repository Interface."""
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import Optional
 from uuid import UUID
-from typing import List
 
 from ..entities.inventory_item import InventoryItem, ItemCategory, ItemStatus
 
@@ -60,11 +61,11 @@ class InventoryItemRepository(ABC):
         pass
     
     @abstractmethod
-    async def get_low_stock_items(self, limit: int = 100) -> List[InventoryItem]:
+    async def get_low_stock_items(self, limit: int = 100) -> list[InventoryItem]:
         """Get items with low stock."""
         pass
     
     @abstractmethod
-    async def get_expired_items(self, limit: int = 100) -> List[InventoryItem]:
+    async def get_expired_items(self, limit: int = 100) -> list[InventoryItem]:
         """Get expired items."""
         pass

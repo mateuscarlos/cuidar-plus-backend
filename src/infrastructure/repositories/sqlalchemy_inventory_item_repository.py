@@ -1,4 +1,6 @@
 """SQLAlchemy Inventory Item Repository Implementation."""
+from __future__ import annotations
+
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
