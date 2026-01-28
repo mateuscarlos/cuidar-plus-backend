@@ -8,10 +8,8 @@ services:
       - "5000:5000"
     env_file:
       - .env
-    environment:
-      # Usando os nomes dos serviços (db, redis) pois estão na mesma rede interna
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/cuidar_plus
-      - REDIS_URL=redis://redis:6379/0
+    # IMPORTANTE: Removido 'environment' para usar as variáveis do .env
+    # que apontam para 192.168.10.110 (IPs dos serviços no host)
     depends_on:
       db:
         condition: service_healthy
