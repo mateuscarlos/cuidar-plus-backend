@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuidar Plus API</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.5; max-width: 800px; margin: 0 auto; padding: 2rem; color: #1a1a1a; background: #f9fafb; }
+        header { border-bottom: 1px solid #e5e7eb; padding-bottom: 2rem; margin-bottom: 2rem; }
+        h1 { font-size: 2.25rem; font-weight: 700; color: #111827; margin: 0; }
+        .badge { background: #d1fae5; color: #065f46; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; }
+        .grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+        .card { background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-2px); border-color: #3b82f6; }
+        a { color: #2563eb; text-decoration: none; font-weight: 500; }
+        a:hover { text-decoration: underline; }
+        code { background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.9em; }
+        footer { margin-top: 4rem; color: #6b7280; font-size: 0.875rem; border-top: 1px solid #e5e7eb; padding-top: 2rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+            <h1>Cuidar Plus API</h1>
+            <span class="badge">{{ version }}</span>
+        </div>
+        <p style="color: #4b5563; font-size: 1.125rem;">Backend system for elderly care management.</p>
+    </header>
+
+    <main>
+        <div class="grid">
+            <div class="card">
+                <h3>📚 Documentation</h3>
+                <p>Explore the API endpoints and schemas.</p>
+                <div style="margin-top: 1rem;">
+                    <a href="/api/docs">Swagger UI &rarr;</a><br>
+                    <a href="/api/redoc" style="display: block; margin-top: 0.5rem;">ReDoc &rarr;</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🩺 Status</h3>
+                <p>Current system health check.</p>
+                <div style="margin-top: 1rem;">
+                    <a href="/health">Check Health &rarr;</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🔑 Resources</h3>
+                <p>Main API resources.</p>
+                <ul style="list-style: none; padding: 0; margin: 1rem 0 0 0;">
+                    <li><code>/api/v1/auth</code></li>
+                    <li><code>/api/v1/users</code></li>
+                    <li><code>/api/v1/patients</code></li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; Cuidar Plus. <a href="/health">System Status</a></p>
+    </footer>
+</body>
+</html>
