@@ -3,11 +3,13 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime, timedelta
 
 from src.infrastructure.database.session import get_db_context
+from src.presentation.api.middlewares.auth_middleware import require_auth
 
 reports_bp = Blueprint("reports", __name__, url_prefix="/api/v1/reports")
 
 
 @reports_bp.route("/", methods=["GET"])
+@require_auth
 def list_reports():
     """
     List all available reports.
@@ -45,6 +47,7 @@ def list_reports():
 
 
 @reports_bp.route("/summary", methods=["GET"])
+@require_auth
 def get_summary():
     """
     Get summary statistics about patients, medications, and appointments.
@@ -91,6 +94,7 @@ def get_summary():
 
 
 @reports_bp.route("/summary/start-date/<start_date>/end-date/<end_date>", methods=["GET"])
+@require_auth
 def get_summary_by_period(start_date: str, end_date: str):
     """
     Get summary statistics for a specific period.
