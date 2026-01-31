@@ -4,11 +4,13 @@ from uuid import UUID
 from datetime import datetime
 
 from src.infrastructure.database.session import get_db_context
+from src.presentation.api.middlewares.auth_middleware import require_auth
 
 inventory_bp = Blueprint("inventory", __name__, url_prefix="/api/v1/inventory")
 
 
 @inventory_bp.route("/", methods=["GET"])
+@require_auth
 def list_inventory():
     """
     List all medications (inventory) with pagination.
@@ -49,6 +51,7 @@ def list_inventory():
 
 
 @inventory_bp.route("/patient/<patient_id>", methods=["GET"])
+@require_auth
 def list_inventory_by_patient(patient_id: str):
     """
     List medications for a specific patient.

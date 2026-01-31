@@ -12,11 +12,13 @@ from src.infrastructure.database.session import get_db_context
 from src.infrastructure.repositories.sqlalchemy_patient_repository import SQLAlchemyPatientRepository
 from src.infrastructure.repositories.sqlalchemy_user_repository import SQLAlchemyUserRepository
 from src.shared.exceptions.application_exception import ApplicationException
+from src.presentation.api.middlewares.auth_middleware import require_auth
 
 patient_bp = Blueprint("patients", __name__, url_prefix="/api/v1/patients")
 
 
 @patient_bp.route("/", methods=["GET"])
+@require_auth
 def list_all_patients():
     """
     List all patients with pagination.
@@ -58,6 +60,7 @@ def list_all_patients():
 
 
 @patient_bp.route("/", methods=["POST"])
+@require_auth
 def create_patient():
     """
     Create a new patient.
@@ -131,6 +134,7 @@ def create_patient():
 
 
 @patient_bp.route("/caregiver/<caregiver_id>", methods=["GET"])
+@require_auth
 def list_patients_by_caregiver(caregiver_id: str):
     """
     List all patients for a specific caregiver.
