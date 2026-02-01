@@ -119,7 +119,7 @@ def list_users():
             }), 200
 
     except Exception as e:
-        return jsonify({"error": "Internal server error"}), 500
+        return jsonify({"error": "Internal server error", "message": str(e)}), 500
 
 
 @user_bp.route("/<user_id>", methods=["GET"])

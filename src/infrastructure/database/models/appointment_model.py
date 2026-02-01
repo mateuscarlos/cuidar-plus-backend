@@ -23,7 +23,7 @@ class AppointmentModel(Base):
     location = Column(String(500), nullable=False)
     doctor_name = Column(String(255), nullable=True)
     specialty = Column(String(100), nullable=True)
-    status = Column(String(50), default="scheduled", nullable=False)
+    status = Column(String(50), default="scheduled", nullable=False, index=True)
     reminder_sent = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
