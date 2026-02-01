@@ -10,6 +10,7 @@ from src.application.use_cases.users.get_user_by_id import GetUserByIdUseCase
 from src.infrastructure.database.session import get_db_context
 from src.infrastructure.repositories.sqlalchemy_user_repository import SQLAlchemyUserRepository
 from src.infrastructure.security.password_hasher import PasswordHasher
+from src.presentation.api.middlewares.auth_middleware import require_auth
 from src.shared.exceptions.application_exception import ApplicationException
 
 user_bp = Blueprint("users", __name__, url_prefix="/api/v1/users")
@@ -19,7 +20,7 @@ user_bp = Blueprint("users", __name__, url_prefix="/api/v1/users")
 def create_user():
     """
     Create a new user.
-    
+
     Request body:
     {
         "email": "user@example.com",
@@ -27,7 +28,7 @@ def create_user():
         "full_name": "John Doe",
         "role": "caregiver"
     }
-    
+
     Response:
     {
         "id": "...",
@@ -39,25 +40,25 @@ def create_user():
     """
     try:
         data = request.get_json()
-        
+
         required_fields = ["email", "password", "full_name", "role"]
         if not all(field in data for field in required_fields):
             return jsonify({"error": "Missing required fields"}), 400
-        
+
         input_dto = CreateUserInput(
             email=data["email"],
             password=data["password"],
             full_name=data["full_name"],
             role=data["role"],
         )
-        
+
         with get_db_context() as session:
             user_repository = SQLAlchemyUserRepository(session)
             password_hasher = PasswordHasher()
-            
+
             use_case = CreateUserUseCase(user_repository, password_hasher)
             output = use_case.execute(input_dto)
-            
+
             return jsonify({
                 "id": str(output.id),
                 "email": output.email,
@@ -65,7 +66,7 @@ def create_user():
                 "role": output.role,
                 "is_active": output.is_active,
             }), 201
-    
+
     except ApplicationException as e:
         return jsonify({"error": e.message, "code": e.code}), 400
     except ValueError as e:
@@ -75,6 +76,7 @@ def create_user():
 
 
 @user_bp.route("/", methods=["GET"])
+@require_auth
 def list_users():
     """
     List all users with pagination.
@@ -82,15 +84,15 @@ def list_users():
     try:
         page = request.args.get("page", 1, type=int)
         page_size = request.args.get("pageSize", 20, type=int)
-        
+
         with get_db_context() as session:
             user_repository = SQLAlchemyUserRepository(session)
-            
+
             # Get all users (simplified - you should implement pagination in repository)
             from src.infrastructure.database.models.user_model import UserModel
             users = session.query(UserModel).offset((page - 1) * page_size).limit(page_size).all()
             total = session.query(UserModel).count()
-            
+
             return jsonify({
                 "data": [
                     {
@@ -115,16 +117,17 @@ def list_users():
                     "totalPages": (total + page_size - 1) // page_size
                 }
             }), 200
-    
+
     except Exception as e:
         return jsonify({"error": "Internal server error", "message": str(e)}), 500
 
 
 @user_bp.route("/<user_id>", methods=["GET"])
+@require_auth
 def get_user(user_id: str):
     """
     Get user by ID.
-    
+
     Response:
     {
         "id": "...",
@@ -138,12 +141,12 @@ def get_user(user_id: str):
     """
     try:
         user_uuid = UUID(user_id)
-        
+
         with get_db_context() as session:
             user_repository = SQLAlchemyUserRepository(session)
             use_case = GetUserByIdUseCase(user_repository)
             output = use_case.execute(user_uuid)
-            
+
             return jsonify({
                 "id": str(output.id),
                 "email": output.email,
@@ -153,7 +156,7 @@ def get_user(user_id: str):
                 "created_at": output.created_at.isoformat(),
                 "last_login": output.last_login.isoformat() if output.last_login else None,
             }), 200
-    
+
     except ValueError:
         return jsonify({"error": "Invalid user ID format"}), 400
     except ApplicationException as e:
