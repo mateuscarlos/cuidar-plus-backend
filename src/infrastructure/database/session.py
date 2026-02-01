@@ -11,11 +11,17 @@ from src.config import get_settings
 settings = get_settings()
 
 # Create engine
+engine_kwargs = {
+    "echo": settings.FLASK_ENV == "development",
+}
+
+if "sqlite" not in settings.DATABASE_URL:
+    engine_kwargs["pool_size"] = settings.DATABASE_POOL_SIZE
+    engine_kwargs["max_overflow"] = settings.DATABASE_MAX_OVERFLOW
+
 engine = create_engine(
     settings.DATABASE_URL,
-    pool_size=settings.DATABASE_POOL_SIZE,
-    max_overflow=settings.DATABASE_MAX_OVERFLOW,
-    echo=settings.FLASK_ENV == "development",
+    **engine_kwargs
 )
 
 # Create session factory
