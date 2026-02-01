@@ -1,5 +1,5 @@
 """Application Entry Point - Flask App Factory."""
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 
 from src.config import get_settings
@@ -59,6 +59,12 @@ def create_app() -> Flask:
     @app.route("/", methods=["GET"])
     def root():
         """Root endpoint with API information."""
+        # Check content negotiation
+        best_match = request.accept_mimetypes.best_match(['application/json', 'text/html'])
+
+        if best_match == 'text/html':
+            return render_template('index.html', version=settings.API_VERSION)
+
         return jsonify({
             "service": "Cuidar Plus API",
             "version": settings.API_VERSION,
