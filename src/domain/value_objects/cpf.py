@@ -42,18 +42,32 @@ class CPF:
         if cpf == cpf[0] * 11:
             return False
         
+        # Convert to integers once
+        digits = [int(d) for d in cpf]
+
         # Validate first check digit
-        sum_digits = sum(int(cpf[i]) * (10 - i) for i in range(9))
-        first_digit = (sum_digits * 10 % 11) % 10
+        # Calculate sum for first digit and sum of first 9 digits simultaneously
+        sum1 = 0
+        sum_digits_0_8 = 0
+        for i in range(9):
+            val = digits[i]
+            sum1 += val * (10 - i)
+            sum_digits_0_8 += val
+
+        first_digit = (sum1 * 10 % 11) % 10
         
-        if int(cpf[9]) != first_digit:
+        if digits[9] != first_digit:
             return False
         
         # Validate second check digit
-        sum_digits = sum(int(cpf[i]) * (11 - i) for i in range(10))
-        second_digit = (sum_digits * 10 % 11) % 10
+        # Optimization: Reuse sum1 and sum_digits_0_8
+        # sum2 = sum(d[i] * (11-i)) for i in 0..9
+        #      = sum(d[i] * (10-i) + d[i]) for i in 0..8 + d[9]*2
+        #      = sum1 + sum_digits_0_8 + d[9]*2
+        sum2 = sum1 + sum_digits_0_8 + digits[9] * 2
+        second_digit = (sum2 * 10 % 11) % 10
         
-        if int(cpf[10]) != second_digit:
+        if digits[10] != second_digit:
             return False
         
         return True
