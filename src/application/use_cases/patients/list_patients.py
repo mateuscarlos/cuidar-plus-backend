@@ -1,5 +1,6 @@
 """List Patients Use Case."""
 from dataclasses import dataclass
+from datetime import date
 from uuid import UUID
 
 from src.domain.repositories.patient_repository import PatientRepository
@@ -26,10 +27,10 @@ class ListPatientsByCaregiverUseCase:
     """
     Use Case: List all patients for a specific caregiver.
     """
-    
+
     def __init__(self, patient_repository: PatientRepository) -> None:
         self._patient_repository = patient_repository
-    
+
     def execute(self, caregiver_id: UUID) -> ListPatientsOutput:
         """
         Execute the use case.
@@ -39,20 +40,21 @@ class ListPatientsByCaregiverUseCase:
         2. Map to summary DTOs
         3. Return output
         """
-        
+
         patients = self._patient_repository.find_by_caregiver(caregiver_id)
-        
+
+        today = date.today()
         patient_summaries = [
             PatientSummary(
                 id=patient.id,
                 full_name=patient.full_name,
-                age=patient.get_age(),
+                age=patient.get_age(today),
                 gender=patient.gender,
                 is_active=patient.is_active,
             )
             for patient in patients
         ]
-        
+
         return ListPatientsOutput(
             patients=patient_summaries,
             total=len(patient_summaries),
