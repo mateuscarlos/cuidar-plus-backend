@@ -1,6 +1,8 @@
 """Reports Routes."""
-from flask import Blueprint, request, jsonify
-from datetime import datetime, timedelta
+from datetime import datetime
+
+from flask import Blueprint, jsonify
+from sqlalchemy import case, func
 
 from src.infrastructure.database.session import get_db_context
 from src.presentation.api.middlewares.auth_middleware import require_auth
@@ -34,7 +36,7 @@ def list_reports():
             "endpoint": "/api/v1/reports/appointments"
         }
     ]
-    
+
     return jsonify({
         "data": reports,
         "pagination": {
@@ -54,22 +56,34 @@ def get_summary():
     """
     try:
         with get_db_context() as session:
-            from src.infrastructure.database.models.patient_model import PatientModel
-            from src.infrastructure.database.models.medication_model import MedicationModel
             from src.infrastructure.database.models.appointment_model import AppointmentModel
-            
+            from src.infrastructure.database.models.medication_model import MedicationModel
+            from src.infrastructure.database.models.patient_model import PatientModel
+
             # Count totals
-            total_patients = session.query(PatientModel).count()
-            active_patients = session.query(PatientModel).filter(PatientModel.is_active == True).count()
-            total_medications = session.query(MedicationModel).count()
-            active_medications = session.query(MedicationModel).filter(MedicationModel.is_active == True).count()
-            
+            total_patients, active_patients = session.query(
+                func.count(PatientModel.id),
+                func.count(case((PatientModel.is_active, PatientModel.id))),
+            ).first()
+
+            total_medications, active_medications = session.query(
+                func.count(MedicationModel.id),
+                func.count(case((MedicationModel.is_active, MedicationModel.id))),
+            ).first()
+
             # Count appointments
-            total_appointments = session.query(AppointmentModel).count()
-            upcoming_appointments = session.query(AppointmentModel).filter(
-                AppointmentModel.appointment_date >= datetime.now()
-            ).count()
-            
+            total_appointments, upcoming_appointments = session.query(
+                func.count(AppointmentModel.id),
+                func.count(
+                    case(
+                        (
+                            AppointmentModel.appointment_date >= datetime.now(),
+                            AppointmentModel.id,
+                        )
+                    )
+                ),
+            ).first()
+
             return jsonify({
                 "patients": {
                     "total": total_patients,
@@ -88,7 +102,7 @@ def get_summary():
                 },
                 "generated_at": datetime.now().isoformat()
             }), 200
-    
+
     except Exception as e:
         return jsonify({"error": "Internal server error", "message": str(e)}), 500
 
@@ -102,23 +116,23 @@ def get_summary_by_period(start_date: str, end_date: str):
     try:
         start = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
         end = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
-        
+
         with get_db_context() as session:
-            from src.infrastructure.database.models.patient_model import PatientModel
             from src.infrastructure.database.models.appointment_model import AppointmentModel
-            
+            from src.infrastructure.database.models.patient_model import PatientModel
+
             # Patients created in period
             patients_created = session.query(PatientModel).filter(
                 PatientModel.created_at >= start,
                 PatientModel.created_at <= end
             ).count()
-            
+
             # Appointments in period
             appointments_period = session.query(AppointmentModel).filter(
                 AppointmentModel.appointment_date >= start,
                 AppointmentModel.appointment_date <= end
             ).count()
-            
+
             return jsonify({
                 "period": {
                     "start": start_date,
@@ -128,7 +142,7 @@ def get_summary_by_period(start_date: str, end_date: str):
                 "appointments": appointments_period,
                 "generated_at": datetime.now().isoformat()
             }), 200
-    
+
     except ValueError as e:
         return jsonify({"error": "Invalid date format", "message": str(e)}), 400
     except Exception as e:
