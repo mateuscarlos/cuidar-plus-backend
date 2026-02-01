@@ -1,6 +1,3 @@
-## 2026-01-28 - Optimized Reports Summary
-**Learning:** SQLite does not support `ARRAY` type which caused test failures. Used `JSON().with_variant(ARRAY(Time), 'postgresql')` to support both SQLite (for tests) and PostgreSQL (production).
-**Action:** Use `with_variant` for dialect-specific types when writing models.
-
-**Learning:** Reducing database round trips by aggregating multiple counts into a single query using `func.count` and `case` is a simple and effective optimization for summary endpoints.
-**Action:** Look for sequential `count()` queries and aggregate them.
+## 2026-02-13 - Missing Indexes on Foreign Keys
+**Learning:** SQLAlchemy models often lacked `index=True` on ForeignKey columns, even if the database migration (Alembic) created the index. This creates a potential for schema drift if models are used to generate migrations in the future. Additionally, some Foreign Keys (like `ReportModel.generated_by`) were missing indexes entirely in both code and DB.
+**Action:** When adding or reviewing models, always verify that `ForeignKey` columns have `index=True` unless there is a specific reason not to index them. Check both the model definition and the migration file.
