@@ -11,11 +11,11 @@ from ..session import Base
 
 class AppointmentModel(Base):
     """SQLAlchemy model for Appointment entity."""
-    
+
     __tablename__ = "appointments"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    patient_id = Column(UUID(as_uuid=True), ForeignKey("patients.id"), nullable=False)
+    patient_id = Column(UUID(as_uuid=True), ForeignKey("patients.id"), nullable=False, index=True)
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     appointment_date = Column(DateTime, nullable=False, index=True)
@@ -27,9 +27,9 @@ class AppointmentModel(Base):
     reminder_sent = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    
+
     # Relationships
     patient = relationship("PatientModel", backref="appointments")
-    
+
     def __repr__(self) -> str:
         return f"<Appointment(id={self.id}, title={self.title}, date={self.appointment_date})>"
