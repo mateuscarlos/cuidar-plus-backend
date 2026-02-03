@@ -15,7 +15,8 @@ class MedicationModel(Base):
     __tablename__ = "medications"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    patient_id = Column(UUID(as_uuid=True), ForeignKey("patients.id"), nullable=False)
+    # Bolt: Added index=True to improve performance of queries filtering by patient
+    patient_id = Column(UUID(as_uuid=True), ForeignKey("patients.id"), nullable=False, index=True)
     name = Column(String(255), nullable=False)
     dosage = Column(String(100), nullable=False)
     frequency = Column(String(50), nullable=False)
