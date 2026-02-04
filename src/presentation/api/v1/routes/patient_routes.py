@@ -27,7 +27,8 @@ def list_all_patients():
         
         with get_db_context() as session:
             from src.infrastructure.database.models.patient_model import PatientModel
-            patients = session.query(PatientModel).offset((page - 1) * page_size).limit(page_size).all()
+            # Optimization: Add ordering by created_at desc to use the index and ensure deterministic pagination
+            patients = session.query(PatientModel).order_by(PatientModel.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
             total = session.query(PatientModel).count()
             
             return jsonify({
