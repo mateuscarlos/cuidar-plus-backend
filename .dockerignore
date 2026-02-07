@@ -1,0 +1,47 @@
+# Git
+.git
+.gitignore
+
+# Python caches
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv/
+ENV/
+.eggs
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Docker (evitar loop de contexto)
+docker-compose*.yml
+Dockerfile*
+.docker/
+
+# Documentation
+*.md
+docs/
+.Jules/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Misc
+*.log
+*.tmp
+.DS_Store
+Thumbs.db

@@ -29,8 +29,27 @@ def create_app() -> Flask:
     app.config["SECRET_KEY"] = settings.SECRET_KEY
     app.config["DEBUG"] = settings.FLASK_ENV == "development"
     
-    # CORS
-    CORS(app, origins=settings.get_cors_origins(), supports_credentials=True)
+    # Disable strict slashes to avoid 308 redirects
+    app.url_map.strict_slashes = False
+    
+    # CORS - Configure with explicit settings
+    cors_config = {
+        "origins": settings.get_cors_origins(),
+        "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        "allow_headers": [
+            "Content-Type",
+            "Authorization",
+            "Accept",
+            "Origin",
+            "X-Requested-With",
+        ],
+        "expose_headers": ["Content-Range", "X-Content-Range"],
+        "supports_credentials": True,
+        "max_age": 3600,
+    }
+    CORS(app, **cors_config)
+    
+    app_logger.info(f"CORS configured for origins: {settings.get_cors_origins()}")
     
     # Register error handlers
     register_error_handlers(app)

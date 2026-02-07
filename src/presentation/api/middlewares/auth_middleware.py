@@ -1,13 +1,28 @@
 """Authentication Middleware."""
 from functools import wraps
 from flask import request, jsonify
+import logging
 
+from src.config import get_settings
 from src.infrastructure.security.jwt_handler import JWTHandler
+
+settings = get_settings()
+logger = logging.getLogger(__name__)
+
+# Log warning if running in development with auth bypass
+if settings.FLASK_ENV == "development":
+    logger.warning(
+        "⚠️  Authentication bypass enabled in development mode. "
+        "All @require_auth routes will accept requests without tokens."
+    )
 
 
 def require_auth(f):
     """
     Decorator to require JWT authentication for a route.
+    
+    In development mode with FLASK_ENV=development, authentication is bypassed
+    and a mock user is injected into the request context.
     
     Usage:
         @app.route('/protected')
@@ -19,6 +34,15 @@ def require_auth(f):
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        # DEVELOPMENT MODE BYPASS: Skip authentication in development
+        if settings.FLASK_ENV == "development":
+            # Inject mock user for development
+            request.user_id = "00000000-0000-0000-0000-000000000000"
+            request.user_email = "dev@cuidar.plus"
+            request.user_role = "admin"
+            return f(*args, **kwargs)
+        
+        # PRODUCTION MODE: Require authentication
         auth_header = request.headers.get("Authorization")
         
         if not auth_header:
@@ -59,6 +83,8 @@ def require_role(*allowed_roles):
     """
     Decorator to require specific role(s) for a route.
     
+    In development mode with FLASK_ENV=development, role checking is bypassed.
+    
     Usage:
         @app.route('/admin')
         @require_auth
@@ -69,6 +95,11 @@ def require_role(*allowed_roles):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
+            # DEVELOPMENT MODE BYPASS: Skip role checking in development
+            if settings.FLASK_ENV == "development":
+                return f(*args, **kwargs)
+            
+            # PRODUCTION MODE: Check user role
             user_role = getattr(request, "user_role", None)
             
             if not user_role:

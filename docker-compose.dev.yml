@@ -1,0 +1,85 @@
+# Compose para desenvolvimento local com hot reload
+# Uso: docker-compose -f docker-compose.dev.yml up --build
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: cuidar-plus-api-dev
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=src.main:create_app
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - SECRET_KEY=dev-secret-key-change-in-production-use-secrets-module
+      - API_VERSION=v1
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/cuidar_plus
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET_KEY=dev-jwt-secret-key-change-in-production-use-secrets-module
+      - JWT_ALGORITHM=HS256
+      - JWT_ACCESS_TOKEN_EXPIRES=3600
+      - JWT_REFRESH_TOKEN_EXPIRES=2592000
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:8080,http://127.0.0.1:5173,http://127.0.0.1:3000,http://127.0.0.1:8080
+      - LOG_LEVEL=DEBUG
+      - PYTHONPATH=/app
+    volumes:
+      # Hot reload: monta código fonte local no container
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./scripts:/app/scripts
+      - ./alembic.ini:/app/alembic.ini
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - cuidar-dev-network
+
+  db:
+    image: postgres:16-alpine
+    container_name: cuidar-plus-db-dev
+    environment:
+      POSTGRES_DB: cuidar_plus
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cuidar_plus"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - cuidar-dev-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: cuidar-plus-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data_dev:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - cuidar-dev-network
+
+volumes:
+  postgres_data_dev:
+    driver: local
+  redis_data_dev:
+    driver: local
+
+networks:
+  cuidar-dev-network:
+    driver: bridge

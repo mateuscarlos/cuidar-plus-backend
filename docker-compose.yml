@@ -1,25 +1,33 @@
-version: '3.8'
-
 services:
   backend:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: cuidar-plus-backend
     ports:
       - "5000:5000"
-    env_file:
-      - .env
-    # IMPORTANTE: Removido 'environment' para usar as variáveis do .env
-    # que apontam para 192.168.10.110 (IPs dos serviços no host)
+    environment:
+      - FLASK_APP=src.main:create_app
+      - FLASK_ENV=development
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production-use-secrets-module}
+      - API_VERSION=${API_VERSION:-v1}
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/cuidar_plus
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-dev-jwt-secret-key-change-in-production-use-secrets-module}
+      - JWT_ALGORITHM=${JWT_ALGORITHM:-HS256}
+      - JWT_ACCESS_TOKEN_EXPIRES=${JWT_ACCESS_TOKEN_EXPIRES:-3600}
+      - JWT_REFRESH_TOKEN_EXPIRES=${JWT_REFRESH_TOKEN_EXPIRES:-2592000}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000,http://localhost:8080,http://127.0.0.1:5173,http://127.0.0.1:3000,http://127.0.0.1:8080}
+      - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
+      - PYTHONPATH=/app
     depends_on:
       db:
         condition: service_healthy
       redis:
-        condition: service_started
-    # OBS: Removemos o volume ./src pois binds Windows->Linux remoto não funcionam bem.
-    # O código será copiado durante o 'build'.
-    command: flask run --host=0.0.0.0
+        condition: service_healthy
     networks:
       - cuidar-plus-network
+    restart: unless-stopped
 
   db:
     image: postgres:16-alpine
@@ -31,15 +39,16 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      # SALVANDO NO DISCO DE 500GB DO SERVIDOR
-      - /dados/cuidar-plus/postgres:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cuidar_plus"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - cuidar-plus-network
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
@@ -47,8 +56,7 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      # SALVANDO NO DISCO DE 500GB DO SERVIDOR
-      - /dados/cuidar-plus/redis:/data
+      - redis_data:/data
     command: redis-server --appendonly yes
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -57,6 +65,7 @@ services:
       retries: 5
     networks:
       - cuidar-plus-network
+    restart: unless-stopped
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -64,12 +73,26 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@cuidarplus.com
       PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: "False"
     ports:
       - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
     depends_on:
       - db
     networks:
       - cuidar-plus-network
+    restart: unless-stopped
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  pgadmin_data:
+    driver: local
 
 networks:
   cuidar-plus-network:
