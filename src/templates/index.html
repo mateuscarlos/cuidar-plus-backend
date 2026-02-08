@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Cuidar Plus API - Backend system for elderly care management">
+    <meta name="color-scheme" content="light dark">
     <title>Cuidar Plus API</title>
     <style>
         :root {
@@ -13,6 +14,15 @@
             --text-color: #333;
             --bg-color: #f4f6f7;
             --card-bg: #fff;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary-color: #1a252f;
+                --bg-color: #121212;
+                --card-bg: #1e1e1e;
+                --text-color: #e0e0e0;
+            }
         }
 
         body {
