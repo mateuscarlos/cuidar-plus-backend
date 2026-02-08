@@ -1,6 +1,8 @@
 
 import pytest
+
 from src.main import create_app
+
 
 @pytest.fixture
 def client():
@@ -41,3 +43,12 @@ def test_root_json_wildcard(client):
     resp = client.get("/", headers={"Accept": "*/*"})
     assert resp.status_code == 200
     assert "application/json" in resp.content_type
+
+def test_root_html_dark_mode_support(client):
+    """Test that the root endpoint returns HTML with dark mode support."""
+    resp = client.get("/", headers={"Accept": "text/html"})
+    assert resp.status_code == 200
+    content = resp.data.decode('utf-8')
+    assert "@media (prefers-color-scheme: dark)" in content
+    assert "--btn-bg" in content
+    assert "--btn-hover-bg" in content
