@@ -19,6 +19,14 @@ def test_root_html(client):
     assert "Cuidar Plus API" in content
     assert "v1" in content  # Version check
 
+    # Check for dark mode support
+    assert "@media (prefers-color-scheme: dark)" in content
+    assert "--bg-color: #121212" in content
+
+    # Check for accessibility improvements
+    assert '<span aria-hidden="true">📄</span>' in content
+    assert '<span aria-hidden="true">💓</span>' in content
+
 def test_root_json_default(client):
     """Test that the root endpoint returns JSON by default (no Accept header)."""
     resp = client.get("/")
