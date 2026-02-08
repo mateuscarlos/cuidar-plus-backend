@@ -11,12 +11,14 @@ from src.application.use_cases.patients.list_patients import ListPatientsByCareg
 from src.infrastructure.database.session import get_db_context
 from src.infrastructure.repositories.sqlalchemy_patient_repository import SQLAlchemyPatientRepository
 from src.infrastructure.repositories.sqlalchemy_user_repository import SQLAlchemyUserRepository
+from src.presentation.api.middlewares.auth_middleware import require_auth
 from src.shared.exceptions.application_exception import ApplicationException
 
 patient_bp = Blueprint("patients", __name__, url_prefix="/api/v1/patients")
 
 
 @patient_bp.route("/", methods=["GET"])
+@require_auth
 def list_all_patients():
     """
     List all patients with pagination.
@@ -24,12 +26,12 @@ def list_all_patients():
     try:
         page = request.args.get("page", 1, type=int)
         page_size = request.args.get("pageSize", 20, type=int)
-        
+
         with get_db_context() as session:
             from src.infrastructure.database.models.patient_model import PatientModel
             patients = session.query(PatientModel).offset((page - 1) * page_size).limit(page_size).all()
             total = session.query(PatientModel).count()
-            
+
             return jsonify({
                 "data": [
                     {
@@ -52,16 +54,18 @@ def list_all_patients():
                     "totalPages": (total + page_size - 1) // page_size
                 }
             }), 200
-    
+
     except Exception as e:
-        return jsonify({"error": "Internal server error", "message": str(e)}), 500
+        # Security: Do not expose internal error details
+        return jsonify({"error": "Internal server error"}), 500
 
 
 @patient_bp.route("/", methods=["POST"])
+@require_auth
 def create_patient():
     """
     Create a new patient.
-    
+
     Request body:
     {
         "caregiver_id": "...",
@@ -80,17 +84,17 @@ def create_patient():
     """
     try:
         data = request.get_json()
-        
+
         required_fields = [
             "caregiver_id", "full_name", "cpf", "date_of_birth", "gender",
             "address", "phone", "emergency_contact", "emergency_phone"
         ]
         if not all(field in data for field in required_fields):
             return jsonify({"error": "Missing required fields"}), 400
-        
+
         # Parse date
         date_of_birth = datetime.strptime(data["date_of_birth"], "%Y-%m-%d").date()
-        
+
         input_dto = CreatePatientInput(
             caregiver_id=UUID(data["caregiver_id"]),
             full_name=data["full_name"],
@@ -105,14 +109,14 @@ def create_patient():
             allergies=data.get("allergies"),
             observations=data.get("observations"),
         )
-        
+
         with get_db_context() as session:
             patient_repository = SQLAlchemyPatientRepository(session)
             user_repository = SQLAlchemyUserRepository(session)
-            
+
             use_case = CreatePatientUseCase(patient_repository, user_repository)
             output = use_case.execute(input_dto)
-            
+
             return jsonify({
                 "id": str(output.id),
                 "caregiver_id": str(output.caregiver_id),
@@ -121,7 +125,7 @@ def create_patient():
                 "age": output.age,
                 "gender": output.gender,
             }), 201
-    
+
     except ApplicationException as e:
         return jsonify({"error": e.message, "code": e.code}), 400
     except ValueError as e:
@@ -131,10 +135,11 @@ def create_patient():
 
 
 @patient_bp.route("/caregiver/<caregiver_id>", methods=["GET"])
+@require_auth
 def list_patients_by_caregiver(caregiver_id: str):
     """
     List all patients for a specific caregiver.
-    
+
     Response:
     {
         "patients": [
@@ -151,12 +156,12 @@ def list_patients_by_caregiver(caregiver_id: str):
     """
     try:
         caregiver_uuid = UUID(caregiver_id)
-        
+
         with get_db_context() as session:
             patient_repository = SQLAlchemyPatientRepository(session)
             use_case = ListPatientsByCaregiverUseCase(patient_repository)
             output = use_case.execute(caregiver_uuid)
-            
+
             return jsonify({
                 "patients": [
                     {
@@ -170,7 +175,7 @@ def list_patients_by_caregiver(caregiver_id: str):
                 ],
                 "total": output.total,
             }), 200
-    
+
     except ValueError:
         return jsonify({"error": "Invalid caregiver ID format"}), 400
     except Exception as e:
