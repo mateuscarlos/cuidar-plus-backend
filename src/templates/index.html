@@ -98,6 +98,15 @@
             border-radius: 4px;
             font-family: monospace;
         }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary-color: #1a252f;
+                --text-color: #e0e0e0;
+                --bg-color: #121212;
+                --card-bg: #1e1e1e;
+            }
+        }
     </style>
 </head>
 <body>
@@ -114,10 +123,10 @@
 
         <div class="links">
             <a href="/api/docs" class="btn">
-                📄 API Documentation
+                <span aria-hidden="true">📄</span> API Documentation
             </a>
             <a href="/health" class="btn">
-                💓 Health Check
+                <span aria-hidden="true">💓</span> Health Check
             </a>
         </div>
     </main>
