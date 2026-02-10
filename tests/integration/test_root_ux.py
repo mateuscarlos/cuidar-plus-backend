@@ -41,3 +41,17 @@ def test_root_json_wildcard(client):
     resp = client.get("/", headers={"Accept": "*/*"})
     assert resp.status_code == 200
     assert "application/json" in resp.content_type
+
+def test_root_html_accessibility(client):
+    """Test that the root endpoint HTML has basic accessibility features."""
+    resp = client.get("/", headers={"Accept": "text/html"})
+    assert resp.status_code == 200
+    content = resp.data.decode('utf-8')
+
+    # Check for dark mode support
+    assert "@media (prefers-color-scheme: dark)" in content
+    assert "--bg-color: #121212" in content
+
+    # Check for aria-hidden on decorative emojis
+    assert '<span aria-hidden="true">📄</span>' in content
+    assert '<span aria-hidden="true">💓</span>' in content
