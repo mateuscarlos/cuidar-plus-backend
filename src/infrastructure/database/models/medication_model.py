@@ -2,7 +2,7 @@
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, Text, ARRAY, Time, JSON
+from sqlalchemy import ARRAY, JSON, Boolean, Column, DateTime, ForeignKey, String, Text, Time
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -15,7 +15,7 @@ class MedicationModel(Base):
     __tablename__ = "medications"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    patient_id = Column(UUID(as_uuid=True), ForeignKey("patients.id"), nullable=False)
+    patient_id = Column(UUID(as_uuid=True), ForeignKey("patients.id"), nullable=False, index=True)
     name = Column(String(255), nullable=False)
     dosage = Column(String(100), nullable=False)
     frequency = Column(String(50), nullable=False)

@@ -11,11 +11,11 @@ from ..session import Base
 
 class PatientModel(Base):
     """SQLAlchemy model for Patient entity."""
-    
+
     __tablename__ = "patients"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    caregiver_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    caregiver_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     full_name = Column(String(255), nullable=False)
     cpf = Column(String(11), unique=True, nullable=False, index=True)
     date_of_birth = Column(Date, nullable=False)
@@ -30,9 +30,9 @@ class PatientModel(Base):
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    
+
     # Relationships
     caregiver = relationship("UserModel", backref="patients")
-    
+
     def __repr__(self) -> str:
         return f"<Patient(id={self.id}, name={self.full_name}, cpf={self.cpf})>"
