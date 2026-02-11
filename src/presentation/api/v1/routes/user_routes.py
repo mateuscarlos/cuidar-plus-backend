@@ -10,13 +10,15 @@ from src.application.use_cases.users.get_user_by_id import GetUserByIdUseCase
 from src.infrastructure.database.session import get_db_context
 from src.infrastructure.repositories.sqlalchemy_user_repository import SQLAlchemyUserRepository
 from src.infrastructure.security.password_hasher import PasswordHasher
-from src.presentation.api.middlewares.auth_middleware import require_auth
+from src.presentation.api.middlewares.auth_middleware import require_auth, require_role
 from src.shared.exceptions.application_exception import ApplicationException
 
 user_bp = Blueprint("users", __name__, url_prefix="/api/v1/users")
 
 
 @user_bp.route("/", methods=["POST"])
+@require_auth
+@require_role("admin")
 def create_user():
     """
     Create a new user.
