@@ -5,3 +5,7 @@
 ## 2024-05-23 - SQLAlchemy SQLite Compatibility
 **Learning:** SQLAlchemy's `create_engine` throws TypeError if `pool_size` or `max_overflow` are passed when using SQLite, unlike Postgres.
 **Action:** When configuring database connections in a mixed environment (Postgres prod / SQLite test), filter out pool arguments for SQLite.
+
+## 2026-02-12 - Dark Mode Implementation in Static Templates
+**Learning:** For single-file HTML templates, fully refactoring hardcoded colors to CSS variables (including buttons and headers) is essential for a robust dark mode implementation that respects `prefers-color-scheme`.
+**Action:** Always extract colors to `:root` variables first, then override them in the `@media (prefers-color-scheme: dark)` block.
