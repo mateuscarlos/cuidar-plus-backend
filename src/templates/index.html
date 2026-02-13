@@ -13,6 +13,17 @@
             --text-color: #333;
             --bg-color: #f4f6f7;
             --card-bg: #fff;
+            --btn-bg: #1e6bb8;
+            --btn-hover: #185a9d;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary-color: #1a252f;
+                --text-color: #e0e0e0;
+                --bg-color: #121212;
+                --card-bg: #1e1e1e;
+            }
         }
 
         body {
@@ -65,7 +76,7 @@
 
         .btn {
             display: inline-block;
-            background-color: #1e6bb8;
+            background-color: var(--btn-bg);
             color: white;
             padding: 1rem 1.5rem;
             text-decoration: none;
@@ -76,7 +87,7 @@
         }
 
         .btn:hover {
-            background-color: #185a9d;
+            background-color: var(--btn-hover);
         }
 
         .btn:focus {
@@ -114,10 +125,10 @@
 
         <div class="links">
             <a href="/api/docs" class="btn">
-                📄 API Documentation
+                <span aria-hidden="true">📄</span> API Documentation
             </a>
             <a href="/health" class="btn">
-                💓 Health Check
+                <span aria-hidden="true">💓</span> Health Check
             </a>
         </div>
     </main>
