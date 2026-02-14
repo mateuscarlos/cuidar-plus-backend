@@ -15,7 +15,8 @@ class PatientModel(Base):
     __tablename__ = "patients"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    caregiver_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    # Add index=True for frequently queried foreign key (e.g. ListPatientsByCaregiverUseCase)
+    caregiver_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     full_name = Column(String(255), nullable=False)
     cpf = Column(String(11), unique=True, nullable=False, index=True)
     date_of_birth = Column(Date, nullable=False)
